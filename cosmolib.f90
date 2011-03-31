@@ -103,8 +103,8 @@ contains
 
     subroutine cdist_vec(zmin, zmax, n, dc)
         real*8, intent(in) :: zmin
-        real*8, intent(in), dimension(n) :: zmax
         integer*8, intent(in) :: n
+        real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dc
 
         integer*8 i
@@ -115,9 +115,9 @@ contains
     end subroutine cdist_vec
 
     subroutine cdist_2vec(zmin, zmax, n, dc)
+        integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: dc
 
         integer*8 i
@@ -148,9 +148,9 @@ contains
     end function tcdist
 
     subroutine tcdist_vec(zmin, zmax, n, dm)
+        integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: dm
 
         integer*8 i
@@ -162,9 +162,9 @@ contains
     end subroutine tcdist_vec
 
     subroutine tcdist_2vec(zmin, zmax, n, dm)
+        integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: dm
 
         integer*8 i
@@ -190,9 +190,9 @@ contains
     end function angdist
 
     subroutine angdist_vec(zmin, zmax, n, da)
+        integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: da
 
         integer*8 i
@@ -204,9 +204,9 @@ contains
     end subroutine angdist_vec
 
     subroutine angdist_2vec(zmin, zmax, n, da)
+        integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: da
 
         integer*8 i
@@ -225,9 +225,9 @@ contains
     end function lumdist
 
     subroutine lumdist_vec(zmin, zmax, n, d)
+        integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: d
 
         integer*8 i
@@ -239,9 +239,9 @@ contains
     end subroutine lumdist_vec
 
     subroutine lumdist_2vec(zmin, zmax, n, d)
+        integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: d
 
         integer*8 i
@@ -285,9 +285,9 @@ contains
     end function scinv
 
     subroutine scinv_vec(zmin, zmax, n, sc_inv)
+        integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: sc_inv
 
         integer*8 i
@@ -299,9 +299,9 @@ contains
     end subroutine scinv_vec
 
     subroutine scinv_2vec(zmin, zmax, n, sc_inv)
+        integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        integer*8, intent(in) :: n
         real*8, intent(inout), dimension(n) :: sc_inv
 
         integer*8 i
@@ -327,8 +327,8 @@ contains
     end function ez_inverse
 
     subroutine ez_inverse_vec(z, n, ez)
-        real*8, dimension(n), intent(in) :: z
         integer*8, intent(in) :: n
+        real*8, dimension(n), intent(in) :: z
         real*8, dimension(n), intent(inout) :: ez
         integer*8 i
 
