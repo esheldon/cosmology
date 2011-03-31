@@ -5,12 +5,58 @@ import numpy
 from numpy import isscalar, log10
 
 class Cosmo(dict):
+    """
+    Class to calculate cosmological distances.  
+
+    This is an implementation of Hogg, D., Distance measures in cosmology, astro-ph/9905116
+
+    Class Name
+    ----------
+    Cosmo
+
+    Construction Parameters
+    -----------------------
+    H0, h: float, optional
+        Hubble constant in units of m/s/Mpc.  You can send either H0 or little h.
+        Default is H0=100
+    flat: boolean, optional
+        Force a flat geometry.  Default is True
+    omega_m: float, optional
+        Matter density relative to the critical density.  Default is 0.3
+    omega_l: float, optional
+        Dark energy density relative to the critical density.  If flat is True,
+        omega_l = 1-omega_m
+    omega_k: float, optional
+        Curvature in units of the critical density. If flat, omega_k=0
+    npts: integer, optional:
+        Number of points used for integrating 1/E(z).  npts=5 is good to 1.e-8,
+        as E(z) is a very slow function.
+    vnpts: integer, optional:
+        Number of points to use for volume integrations. Default is 10
+
+    Methods
+    -------
+    DH: Return the hubble distance.
+    Dc: Comoving distance.
+    Dm: Transverse comoving distance.
+    Da: Angular diameter distance.
+    Dl: Luminosity distance.
+    dV: Volume element.
+    V:  Volume between two redshifts.
+    distmod: Distance modulus.
+    sigmacritinv: Inverse critical density for lensing.
+
+    Ez_inverse: Calculate 1/E(z)
+    Ezinv_integral: Calculate the integral of 1/E(z) from zmin to zmax
+
+    """
     def __init__(self, 
+                 H0=100.0,
+                 h=None, # can send either h or H0
+                 flat=True,
                  omega_m=0.3, 
                  omega_l=0.7,
                  omega_k=0.0,
-                 H0=100.0,
-                 flat=True,
                  npts=5,
                  vnpts=10):
 
@@ -19,6 +65,8 @@ class Cosmo(dict):
         omega_m, omega_l, omega_k = \
                 self.extract_omegas(omega_m,omega_l,omega_k,flat)
 
+        if h is not None:
+            H0 = 100.0*h
 
         self['H0'] = H0 
         self['omega_m'] = omega_m
@@ -28,7 +76,7 @@ class Cosmo(dict):
         self['npts'] = npts
         self['vnpts'] = vnpts
         _cosmolib.cosmolib.cosmo_init(flat,H0, omega_m, npts, vnpts, omega_k, omega_l)
-        self['DH'] = _cosmolib.cosmolib.dh
+        self['DH'] = float(_cosmolib.cosmolib.dh)
 
         self.Distmod = self.distmod
 
