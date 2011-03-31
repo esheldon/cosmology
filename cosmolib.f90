@@ -386,8 +386,6 @@ contains
         allocate(xxi(npts)); xxi=0
         allocate(wwi(npts)); wwi=0
 
-
-        !call gauleg(-1.0_8, 1.0_8, npts, xxi, wwi)
         call gauleg(-1.0_8, 1.0_8, npts, xxi, wwi)
 
     end subroutine set_cosmo_weights
@@ -402,12 +400,6 @@ contains
 
 
     ! from numerical recipes
-    !subroutine gauleg(x1, x2, npts, x, w)
-    !
-    !    real*8, intent(in) :: x1, x2
-    !    integer*8, intent(in) :: npts
-    !    real*8, intent(inout), dimension(:), allocatable :: x, w
-    ! from numerical recipes
     subroutine gauleg(x1, x2, npts, x, w)
 
         integer*8, intent(in) :: npts
@@ -417,16 +409,6 @@ contains
 
         integer*8 :: i, j, m
         real*8 :: xm, xl, z1, z, p1, p2, p3, pp, EPS, abszdiff
-
-        !if (allocated(x)) then
-        !    deallocate(x)
-        !endif
-        !if (allocated(w)) then
-        !    deallocate(w)
-        !endif
-        !allocate(x(npts)); x=0
-        !allocate(w(npts)); w=0
-
 
 
         pp = 0.0
