@@ -199,6 +199,33 @@ class Cosmo(dict):
         return d
 
 
+    def dV(self, z):
+        """
+        Calculate the volume element at redshift z
+
+        Parameters
+        ----------
+        z: scalar or array
+            Redshift
+        """
+        if isscalar(z):
+            dv = _cosmolib.cosmolib.dv(z)
+        else:
+            dv = numpy.zeros(len(z), dtype='f8')
+            _cosmolib.cosmolib.dv_vec(z)
+
+        return dv
+
+    def V(self, zmin, zmax):
+        """
+        Calculate the comoving volume between zmin and zmax.
+
+        Parameters
+        ----------
+        zmin, zmax: scalars
+            min and max redshifts
+        """
+        return _cosmolib.cosmolib.volume(zmin, zmax)
 
     def distmod(self, z):
         """

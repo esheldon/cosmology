@@ -14,6 +14,7 @@ module cosmolib
     integer*8, save :: npts
     integer*8, save :: vnpts
     real*8, private, save, dimension(:), allocatable :: xxi, wwi
+    real*8, private, save, dimension(:), allocatable :: vxxi, vwwi
 
     real*8, save :: H0
     real*8, save :: omega_m
@@ -86,7 +87,7 @@ contains
 
         endif
 
-        call set_cosmo_weights(npts)
+        call set_cosmo_weights(npts, vnpts)
 
         has_been_init = 1
 
@@ -253,6 +254,28 @@ contains
     end subroutine lumdist_2vec
 
 
+    real*8 function dv(z)
+        ! comoving volume element at redshift z
+        real*8, intent(in) :: z
+        real*8 ezinv, da
+
+        da = angdist(0.0_8, z)
+        ezinv = ez_inverse(z)
+
+        dv = DH*da**2*ezinv*(1.0+z)**2
+
+    end function dv
+
+    subroutine dv_vec(z, n, dvvec)
+        integer*8, intent(in) :: n
+        real*8, intent(in), dimension(n) :: z
+        real*8, intent(inout), dimension(n) :: dvvec
+        integer*8 i
+
+        do i=1,n
+            dvvec(i) = dv( z(i) ) 
+        enddo
+    end subroutine dv_vec
 
 
 
@@ -337,6 +360,7 @@ contains
         enddo
     end subroutine ez_inverse_vec
 
+
     real*8 function ez_inverse_integral(zmin, zmax) result(val)
         real*8, intent(in) :: zmin, zmax
         integer*8 i
@@ -357,6 +381,22 @@ contains
     end function ez_inverse_integral
 
 
+    real*8 function volume(zmin, zmax)
+        real*8, intent(in) :: zmin, zmax
+        real*8 f1, f2, z, v
+
+        integer*8 i
+
+
+        f1 = (zmax-zmin)/2.
+        f2 = (zmax+zmin)/2.
+
+        volume = 0
+        do i=1,vnpts
+            z = vxxi(i)*f1 + f2
+            volume = volume + f1*dv(z)*vwwi(i)
+        enddo
+    end function volume
 
 
 
@@ -372,21 +412,34 @@ contains
 
 
 
-    subroutine set_cosmo_weights(npts_new)
+    subroutine set_cosmo_weights(npts_new, vnpts_new)
 
         integer*8, intent(in) :: npts_new
+        integer*8, intent(in) :: vnpts_new
         npts = npts_new
+        vnpts = vnpts_new
 
         if (allocated(xxi)) then
             deallocate(xxi)
         endif
+        allocate(xxi(npts)); xxi=0
         if (allocated(wwi)) then
             deallocate(wwi)
         endif
-        allocate(xxi(npts)); xxi=0
         allocate(wwi(npts)); wwi=0
 
+        if (allocated(vxxi)) then
+            deallocate(vxxi)
+        endif
+        allocate(vxxi(vnpts)); vxxi=0
+
+        if (allocated(vwwi)) then
+            deallocate(vwwi)
+        endif
+        allocate(vwwi(vnpts)); vwwi=0
+
         call gauleg(-1.0_8, 1.0_8, npts, xxi, wwi)
+        call gauleg(-1.0_8, 1.0_8, vnpts, vxxi, vwwi)
 
     end subroutine set_cosmo_weights
 
