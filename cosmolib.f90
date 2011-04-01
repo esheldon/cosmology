@@ -1,11 +1,10 @@
 ! vim: set filetype=fortran
 module cosmolib
-    ! class to calculate distances. For now simplified to omega_k=0.
+    ! class to calculate distances.
     !
-    ! This uses gauss-legendre integration
-    ! extremely fast and accurate
+    ! This uses gauss-legendre integration extremely fast and accurate
     !
-    ! For integration, 5 points is essentially exact and very fast.
+    ! For 1/E(z) integration, 5 points is good to 1.e-8
 
     implicit none
 
@@ -30,7 +29,7 @@ module cosmolib
     real*8, parameter :: four_pi_G_over_c_squared = 6.0150504541630152e-07_8
     ! The hubble distance c/H0
     real*8, parameter :: c = 2.99792458e5_8
-    real*8, parameter :: DH = 2.99792458e3_8
+    real*8, save :: DH
 
     ! for integral calculations
     real*8, private :: f1,f2,z,ezinv
@@ -60,6 +59,8 @@ contains
         omega_m = omega_m_new
         npts    = npts_new
         vnpts    = vnpts_new
+
+        DH = c/H0
 
         if (flat) then
             omega_l = 1.0-omega_m
