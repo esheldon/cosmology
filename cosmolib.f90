@@ -67,7 +67,7 @@ contains
             sqrt_omega_k_over_DH = 0
             sqrt_omega_k_over_DH_inv = 0
         else
-            ! it will be up to the python wrapper to ensure the right inputs
+            ! a good wrapper will deal with this
             if (present(omega_l_new) .neqv. .true.) then
                 print '(a)','You must enter omega_k if not flat'
                 call exit(45)
@@ -384,7 +384,7 @@ contains
 
     real*8 function volume(zmin, zmax)
         real*8, intent(in) :: zmin, zmax
-        real*8 f1, f2, z, v
+        real*8 f1, f2, z
 
         integer*8 i
 
