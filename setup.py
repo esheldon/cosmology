@@ -32,7 +32,7 @@ envPrepend(PYTHONPATH,${PRODUCT_DIR}/%s)
         sys.stdout.write("Creating ups dir: %s\n" % upsdir)
         os.makedirs(upsdir)
 
-    upsname=os.path.join(upsdir,'fimage.table')
+    upsname=os.path.join(upsdir,'cosmology.table')
     sys.stdout.write('Writing ups table file: %s\n' % upsname)
     upsfile=open(upsname, 'w')
     upsfile.write(upstext)
