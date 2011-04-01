@@ -159,10 +159,17 @@ class Cosmo(dict):
                                           self.DH, self.flat, 
                                           self.omega_m, self.omega_l, self.omega_k)
 
-        elif isscalar(zmin) and not isscalar(zmax):
+        elif not isscalar(zmin) and isscalar(zmax):
             # scalar for zmin, array for zmax
+            dc=numpy.zeros(len(zmin), dtype='f8')
+            _cosmolib.cosmolib.cdist_vec1(zmin, zmax, dc,
+                                             self.DH, self.flat, 
+                                             self.omega_m, self.omega_l, self.omega_k)
+
+        elif isscalar(zmin) and not isscalar(zmax):
+            # array for zmin, scalar zmax
             dc=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.cdist_vec(zmin, zmax, dc,
+            _cosmolib.cosmolib.cdist_vec2(zmin, zmax, dc,
                                          self.DH, self.flat, 
                                          self.omega_m, self.omega_l, self.omega_k)
 
@@ -204,12 +211,19 @@ class Cosmo(dict):
                                            self.DH, self.flat, 
                                            self.omega_m, self.omega_l, self.omega_k)
 
+        elif not isscalar(zmin) and isscalar(zmax):
+            # scalar for zmin, array for zmax
+            dm=numpy.zeros(len(zmin), dtype='f8')
+            _cosmolib.cosmolib.tcdist_vec1(zmin, zmax, dm,
+                                           self.DH, self.flat, 
+                                           self.omega_m, self.omega_l, self.omega_k)
+
         elif isscalar(zmin) and not isscalar(zmax):
             # scalar for zmin, array for zmax
             dm=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.tcdist_vec(zmin, zmax, dm,
-                                          self.DH, self.flat, 
-                                          self.omega_m, self.omega_l, self.omega_k)
+            _cosmolib.cosmolib.tcdist_vec2(zmin, zmax, dm,
+                                           self.DH, self.flat, 
+                                           self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zmin) and not isscalar(zmax):
             # both arrays: must be same length
@@ -246,12 +260,20 @@ class Cosmo(dict):
                                             self.DH, self.flat, 
                                             self.omega_m, self.omega_l, self.omega_k)
 
+        elif not isscalar(zmin) and isscalar(zmax):
+            # scalar for zmin, array for zmax
+            da=numpy.zeros(len(zmin), dtype='f8')
+            _cosmolib.cosmolib.angdist_vec1(zmin, zmax, da,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
+
+
         elif isscalar(zmin) and not isscalar(zmax):
             # scalar for zmin, array for zmax
             da=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.angdist_vec(zmin, zmax, da,
-                                           self.DH, self.flat, 
-                                           self.omega_m, self.omega_l, self.omega_k)
+            _cosmolib.cosmolib.angdist_vec2(zmin, zmax, da,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zmin) and not isscalar(zmax):
             # both arrays: must be same length
@@ -287,12 +309,19 @@ class Cosmo(dict):
                                             self.DH, self.flat, 
                                             self.omega_m, self.omega_l, self.omega_k)
 
+        elif not isscalar(zmin) and isscalar(zmax):
+            # scalar for zmin, array for zmax
+            da=numpy.zeros(len(zmin), dtype='f8')
+            _cosmolib.cosmolib.lumdist_vec1(zmin, zmax, da,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
+
         elif isscalar(zmin) and not isscalar(zmax):
             # scalar for zmin, array for zmax
             da=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.lumdist_vec(zmin, zmax, da,
-                                           self.DH, self.flat, 
-                                           self.omega_m, self.omega_l, self.omega_k)
+            _cosmolib.cosmolib.lumdist_vec2(zmin, zmax, da,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zmin) and not isscalar(zmax):
             # both arrays: must be same length
@@ -381,12 +410,19 @@ class Cosmo(dict):
                                              self.DH, self.flat, 
                                              self.omega_m, self.omega_l, self.omega_k)
 
+        elif not isscalar(zl) and isscalar(zs):
+            # scalar for zl, array for zs
+            scinv=numpy.zeros(len(zl), dtype='f8')
+            _cosmolib.cosmolib.scinv_vec1(zl, zs, scinv,
+                                          self.DH, self.flat, 
+                                          self.omega_m, self.omega_l, self.omega_k)
+
         elif isscalar(zl) and not isscalar(zs):
             # scalar for zl, array for zs
             scinv=numpy.zeros(len(zs), dtype='f8')
-            _cosmolib.cosmolib.scinv_vec(zl, zs, scinv,
-                                         self.DH, self.flat, 
-                                         self.omega_m, self.omega_l, self.omega_k)
+            _cosmolib.cosmolib.scinv_vec2(zl, zs, scinv,
+                                          self.DH, self.flat, 
+                                          self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zl) and not isscalar(zs):
             # both arrays: must be same length

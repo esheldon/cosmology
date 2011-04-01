@@ -61,10 +61,33 @@ contains
                                        flat, omega_m, omega_l, omega_k )
     end function cdist
 
-    subroutine cdist_vec(zmin, zmax, n, dc, &
-                         DH, flat, omega_m, omega_l, omega_k )
-        real*8, intent(in) :: zmin
+
+    subroutine cdist_vec1(zmin, zmax, n, dc, &
+                          DH, flat, omega_m, omega_l, omega_k )
+        ! first arg, zmin, is the vector
         integer*8, intent(in) :: n
+        real*8, intent(in), dimension(n) :: zmin
+        real*8, intent(in) :: zmax
+        real*8, intent(inout), dimension(n) :: dc
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        integer*8 i
+
+        do i=1,n
+            dc(i) = DH*ez_inverse_integral(zmin(i), zmax, &
+                                           flat, omega_m, omega_l, omega_k )
+        end do
+    end subroutine cdist_vec1
+
+    subroutine cdist_vec2(zmin, zmax, n, dc, &
+                          DH, flat, omega_m, omega_l, omega_k )
+        integer*8, intent(in) :: n
+        real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dc
 
@@ -80,10 +103,12 @@ contains
             dc(i) = DH*ez_inverse_integral(zmin, zmax(i), &
                                            flat, omega_m, omega_l, omega_k )
         end do
-    end subroutine cdist_vec
+    end subroutine cdist_vec2
+
 
     subroutine cdist_2vec(zmin, zmax, n, dc, &
                           DH, flat, omega_m, omega_l, omega_k )
+        ! both zmin and zmax are vectors
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
@@ -135,8 +160,52 @@ contains
 
     end function tcdist
 
-    subroutine tcdist_vec(zmin, zmax, n, dm, &
-                          DH, flat, omega_m, omega_l, omega_k )
+    subroutine tcdist_vec1(zmin, zmax, n, dm, &
+                           DH, flat, omega_m, omega_l, omega_k )
+        integer*8, intent(in) :: n
+        real*8, intent(in), dimension(n) :: zmin
+        real*8, intent(in) :: zmax
+        real*8, intent(inout), dimension(n) :: dm
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 d, t
+
+        integer*8 i
+
+        if (flat) then
+            ! just use comoving distance
+            do i=1,n
+                dm(i) = DH*ez_inverse_integral(zmin(i), zmax, &
+                                               flat, omega_m, omega_l, omega_k )
+            enddo
+        else if (omega_k > 0) then
+            t = sqrt(omega_k)/DH
+            do i=1,n
+                d= DH*ez_inverse_integral(zmin(i), zmax, &
+                                          flat, omega_m, omega_l, omega_k )
+                dm(i) = sinh(d*t)/t
+            enddo
+        else
+            t = sqrt(-omega_k)/DH
+            do i=1,n
+                d= DH*ez_inverse_integral(zmin(i), zmax, &
+                                          flat, omega_m, omega_l, omega_k )
+                dm(i) = sin(d*t)/t
+            enddo
+
+        endif
+
+    end subroutine tcdist_vec1
+
+
+
+    subroutine tcdist_vec2(zmin, zmax, n, dm, &
+                           DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
@@ -175,7 +244,7 @@ contains
 
         endif
 
-    end subroutine tcdist_vec
+    end subroutine tcdist_vec2
 
     subroutine tcdist_2vec(zmin, zmax, n, dm, &
                            DH, flat, omega_m, omega_l, omega_k )
@@ -245,7 +314,29 @@ contains
         angdist = angdist/(1.+zmax)
     end function angdist
 
-    subroutine angdist_vec(zmin, zmax, n, da, &
+    subroutine angdist_vec1(zmin, zmax, n, da, &
+                           DH, flat, omega_m, omega_l, omega_k )
+        integer*8, intent(in) :: n
+        real*8, intent(in), dimension(n) :: zmin
+        real*8, intent(in) :: zmax
+        real*8, intent(inout), dimension(n) :: da
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        integer*8 i
+
+        do i=1,n
+            da(i) = angdist(zmin(i), zmax, &
+                            DH, flat, omega_m, omega_l, omega_k )
+        enddo
+
+    end subroutine angdist_vec1
+
+    subroutine angdist_vec2(zmin, zmax, n, da, &
                            DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
@@ -265,7 +356,10 @@ contains
                             DH, flat, omega_m, omega_l, omega_k )
         enddo
 
-    end subroutine angdist_vec
+    end subroutine angdist_vec2
+
+
+
 
     subroutine angdist_2vec(zmin, zmax, n, da, &
                            DH, flat, omega_m, omega_l, omega_k )
@@ -307,7 +401,33 @@ contains
 
     end function lumdist
 
-    subroutine lumdist_vec(zmin, zmax, n, da, &
+    subroutine lumdist_vec1(zmin, zmax, n, da, &
+                           DH, flat, omega_m, omega_l, omega_k )
+        integer*8, intent(in) :: n
+        real*8, intent(in), dimension(n) :: zmin
+        real*8, intent(in) :: zmax
+        real*8, intent(inout), dimension(n) :: da
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 d
+        integer*8 i
+
+        do i=1,n
+            d = angdist(zmin(i), zmax, &
+                        DH, flat, omega_m, omega_l, omega_k )
+            da(i) = d*(1.+zmax)**2
+        enddo
+
+    end subroutine lumdist_vec1
+
+
+
+    subroutine lumdist_vec2(zmin, zmax, n, da, &
                            DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
@@ -329,7 +449,7 @@ contains
             da(i) = d*(1.+zmax(i))**2
         enddo
 
-    end subroutine lumdist_vec
+    end subroutine lumdist_vec2
 
     subroutine lumdist_2vec(zmin, zmax, n, da, &
                            DH, flat, omega_m, omega_l, omega_k )
@@ -464,7 +584,29 @@ contains
 
     end function scinv
 
-    subroutine scinv_vec(zl, zs, n, sc_inv, &
+    subroutine scinv_vec1(zl, zs, n, sc_inv, &
+                          DH, flat, omega_m, omega_l, omega_k )
+        integer*8, intent(in) :: n
+        real*8, intent(in), dimension(n) :: zl
+        real*8, intent(in) :: zs
+        real*8, intent(inout), dimension(n) :: sc_inv
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        integer*8 i
+
+        do i=1,n
+            sc_inv(i) = scinv(zl(i), zs, &
+                              DH, flat, omega_m, omega_l, omega_k )
+        enddo
+
+    end subroutine scinv_vec1
+
+    subroutine scinv_vec2(zl, zs, n, sc_inv, &
                          DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zl
@@ -484,7 +626,7 @@ contains
                               DH, flat, omega_m, omega_l, omega_k )
         enddo
 
-    end subroutine scinv_vec
+    end subroutine scinv_vec2
 
     subroutine scinv_2vec(zl, zs, n, sc_inv, &
                          DH, flat, omega_m, omega_l, omega_k )
