@@ -2,11 +2,16 @@
 module cosmolib
     ! class to calculate distances.
     !
+    ! f2py doesn't yet support derived types (structures), forcing me to send
+    ! all the cosmological parameters each to the functions rather than a
+    ! structure.  This is pretty ugly and harder to maintain.
+    !
     ! This uses gauss-legendre integration extremely fast and accurate
     !
     ! For 1/E(z) integration, 5 points is good to 1.e-8
 
     implicit none
+
 
     ! class variables
     integer*8, save, private :: has_been_init = 0
@@ -15,25 +20,13 @@ module cosmolib
     real*8, private, save, dimension(npts) :: xxi, wwi
     real*8, private, save, dimension(vnpts) :: vxxi, vwwi
 
-    real*8, save :: H0
-    real*8, save :: omega_m
-    real*8, save :: omega_l
-    real*8, save :: omega_k
-    logical, save :: flat
-
-    real*8, save :: sqrt_omega_k_over_DH
-    real*8, save :: sqrt_omega_k_over_DH_inv
-
-
     ! use in scinv for dlens in Mpc
     real*8, parameter :: four_pi_G_over_c_squared = 6.0150504541630152e-07_8
     ! The hubble distance c/H0
     real*8, parameter :: c = 2.99792458e5_8
-    real*8, save :: DH
 
     ! for integral calculations
     real*8, private :: f1,f2,z,ezinv
-
 
     ! for integration
     real*8, parameter, public :: M_PI    = 3.141592653589793238462643383279502884197_8
@@ -42,246 +35,411 @@ module cosmolib
 contains
 
     ! you must initialize
-    subroutine cosmo_init(flat_new, H0_new, omega_m_new, &
-                          omega_k_new, omega_l_new)
-
-        logical, intent(in) :: flat_new
-
-        real*8, intent(in) :: H0_new, omega_m_new
-
-        ! we only need these if the universe is not flat
-        real*8, intent(in), optional :: omega_l_new, omega_k_new
-
-        flat    = flat_new
-        H0      = H0_new
-        omega_m = omega_m_new
-
-        DH = c/H0
-
-        if (flat) then
-            omega_l = 1.0-omega_m
-            sqrt_omega_k_over_DH = 0
-            sqrt_omega_k_over_DH_inv = 0
-        else
-            ! a good wrapper will deal with this
-            if (present(omega_l_new) .neqv. .true.) then
-                print '(a)','You must enter omega_k if not flat'
-                call exit(45)
-            endif
-            if (present(omega_l_new) .neqv. .true.) then
-                print '(a)','You must enter omega_l if not flat'
-                call exit(45)
-            endif
-            omega_k=omega_k_new
-            omega_l = omega_l_new
-
-            if (omega_k > 0) then
-                sqrt_omega_k_over_DH = sqrt(omega_k)/DH
-            else
-                sqrt_omega_k_over_DH = sqrt(-omega_k)/DH
-            endif
-            sqrt_omega_k_over_DH_inv = 1./sqrt_omega_k_over_DH 
-
-        endif
+    subroutine cosmo_init()
 
         if (has_been_init == 0) then
             call set_cosmo_weights()
         endif
-
         has_been_init = 1
 
     end subroutine cosmo_init
 
-
     ! comoving distance
     ! variants for a vector of zmax and zmin,zmax both vectors
-    real*8 function cdist(zmin, zmax)
+    real*8 function cdist(zmin, zmax, &
+                          DH, flat, omega_m, omega_l, omega_k )
         ! comoving distance
         real*8, intent(in) :: zmin, zmax
-        cdist = DH*ez_inverse_integral(zmin, zmax)
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        cdist = DH*ez_inverse_integral(zmin, zmax, &
+                                       flat, omega_m, omega_l, omega_k )
     end function cdist
 
-    subroutine cdist_vec(zmin, zmax, n, dc)
+    subroutine cdist_vec(zmin, zmax, n, dc, &
+                         DH, flat, omega_m, omega_l, omega_k )
         real*8, intent(in) :: zmin
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dc
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            dc(i) = DH*ez_inverse_integral(zmin, zmax(i))
+            dc(i) = DH*ez_inverse_integral(zmin, zmax(i), &
+                                           flat, omega_m, omega_l, omega_k )
         end do
     end subroutine cdist_vec
 
-    subroutine cdist_2vec(zmin, zmax, n, dc)
+    subroutine cdist_2vec(zmin, zmax, n, dc, &
+                          DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dc
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            dc(i) = cdist(zmin(i), zmax(i))
+            dc(i) = DH*ez_inverse_integral(zmin(i), zmax(i), &
+                                           flat, omega_m, omega_l, omega_k )
         end do
     end subroutine cdist_2vec
 
 
 
-    real*8 function tcdist(zmin, zmax) result(d)
+    real*8 function tcdist(zmin, zmax, &
+                           DH, flat, omega_m, omega_l, omega_k )
         ! useful for calculating transverse comoving distance at zmax.  When
         ! zmin is not zero, useful in angular diameter distances
 
         real*8, intent(in) :: zmin, zmax
 
-        d = cdist(zmin, zmax)
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 t
+
+        tcdist = cdist(zmin, zmax, &
+                       DH, flat, omega_m, omega_l, omega_k )
 
         if (flat) then
              !just use comoving distance already calculated
         else if (omega_k > 0) then
-            d = sinh( d*sqrt_omega_k_over_DH )*sqrt_omega_k_over_DH_inv
+            t = sqrt(omega_k)/DH
+            tcdist = sinh( tcdist*t)/t
         else
-            d =  sin( d*sqrt_omega_k_over_DH )*sqrt_omega_k_over_DH_inv
+            t = sqrt(-omega_k)/DH
+            tcdist =  sin( tcdist*t)/t
         endif
 
     end function tcdist
 
-    subroutine tcdist_vec(zmin, zmax, n, dm)
+    subroutine tcdist_vec(zmin, zmax, n, dm, &
+                          DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dm
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 d, t
+
         integer*8 i
 
-        do i=1,n
-            dm(i) = tcdist(zmin, zmax(i))
-        enddo
+        if (flat) then
+            ! just use comoving distance
+            do i=1,n
+                dm(i) = DH*ez_inverse_integral(zmin, zmax(i), &
+                                               flat, omega_m, omega_l, omega_k )
+            enddo
+        else if (omega_k > 0) then
+            t = sqrt(omega_k)/DH
+            do i=1,n
+                d= DH*ez_inverse_integral(zmin, zmax(i), &
+                                          flat, omega_m, omega_l, omega_k )
+                dm(i) = sinh(d*t)/t
+            enddo
+        else
+            t = sqrt(-omega_k)/DH
+            do i=1,n
+                d= DH*ez_inverse_integral(zmin, zmax(i), &
+                                          flat, omega_m, omega_l, omega_k )
+                dm(i) = sin(d*t)/t
+            enddo
+
+        endif
 
     end subroutine tcdist_vec
 
-    subroutine tcdist_2vec(zmin, zmax, n, dm)
+    subroutine tcdist_2vec(zmin, zmax, n, dm, &
+                           DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dm
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 d, t
+
         integer*8 i
 
-        do i=1,n
-            dm(i) = tcdist(zmin(i),zmax(i))
-        enddo
+        if (flat) then
+            ! just use comoving distance
+            do i=1,n
+                dm(i) = DH*ez_inverse_integral(zmin(i), zmax(i), &
+                                               flat, omega_m, omega_l, omega_k )
+            enddo
+        else if (omega_k > 0) then
+            t = sqrt(omega_k)/DH
+            do i=1,n
+                d= DH*ez_inverse_integral(zmin(i), zmax(i), &
+                                          flat, omega_m, omega_l, omega_k )
+                dm(i) = sinh(d*t)/t
+            enddo
+        else
+            t = sqrt(-omega_k)/DH
+            do i=1,n
+                d= DH*ez_inverse_integral(zmin(i), zmax(i), &
+                                          flat, omega_m, omega_l, omega_k )
+                dm(i) = sin(d*t)/t
+            enddo
+        endif
 
     end subroutine tcdist_2vec
 
 
 
 
-    real*8 function angdist(zmin, zmax) result(d)
+
+
+    real*8 function angdist(zmin, zmax, &
+                            DH, flat, omega_m, omega_l, omega_k )
         ! angular diameter distance
         real*8, intent(in) :: zmin, zmax
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         if (flat) then
             ! this is just the comoving distance over 1+zmax
-            d = DH*ez_inverse_integral(zmin, zmax)/(1.+zmax)
+            angdist = DH*ez_inverse_integral(zmin, zmax, &
+                                             flat, omega_m, omega_l, omega_k )
         else
-            d = tcdist(zmin, zmax)/(1.+zmax)
+            angdist = tcdist(zmin, zmax, &
+                             DH, flat, omega_m, omega_l, omega_k )
         endif
+        angdist = angdist/(1.+zmax)
     end function angdist
 
-    subroutine angdist_vec(zmin, zmax, n, da)
+    subroutine angdist_vec(zmin, zmax, n, da, &
+                           DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            da(i) = angdist(zmin, zmax(i))
+            da(i) = angdist(zmin, zmax(i), &
+                            DH, flat, omega_m, omega_l, omega_k )
         enddo
 
     end subroutine angdist_vec
 
-    subroutine angdist_2vec(zmin, zmax, n, da)
+    subroutine angdist_2vec(zmin, zmax, n, da, &
+                           DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            da(i) = angdist(zmin(i),zmax(i))
+            da(i) = angdist(zmin(i), zmax(i), &
+                            DH, flat, omega_m, omega_l, omega_k )
         enddo
 
     end subroutine angdist_2vec
 
 
-    real*8 function lumdist(zmin, zmax) result(d)
+
+    real*8 function lumdist(zmin, zmax, &
+                            DH, flat, omega_m, omega_l, omega_k )
         ! angular diameter distance
         real*8, intent(in) :: zmin, zmax
-        d = angdist(zmin, zmax)*(1.+zmax)**2
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        lumdist = angdist(zmin, zmax, DH, flat, omega_m, omega_l, omega_k )
+        lumdist = lumdist*(1.+zmax)**2
+
     end function lumdist
 
-    subroutine lumdist_vec(zmin, zmax, n, d)
+    subroutine lumdist_vec(zmin, zmax, n, da, &
+                           DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        real*8, intent(inout), dimension(n) :: d
+        real*8, intent(inout), dimension(n) :: da
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 d
         integer*8 i
 
         do i=1,n
-            d(i) = angdist(zmin, zmax(i))*(1.+zmax(i))**2
+            d = angdist(zmin, zmax(i), &
+                        DH, flat, omega_m, omega_l, omega_k )
+            da(i) = d*(1.+zmax(i))**2
         enddo
 
     end subroutine lumdist_vec
 
-    subroutine lumdist_2vec(zmin, zmax, n, d)
+    subroutine lumdist_2vec(zmin, zmax, n, da, &
+                           DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
-        real*8, intent(inout), dimension(n) :: d
+        real*8, intent(inout), dimension(n) :: da
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 d
 
         integer*8 i
 
         do i=1,n
-            d(i) = angdist(zmin(i),zmax(i))*(1.+zmax(i))**2
+            d = angdist(zmin(i), zmax(i), &
+                        DH, flat, omega_m, omega_l, omega_k )
+            da(i) = d*(1.+zmax(i))**2
         enddo
 
     end subroutine lumdist_2vec
 
 
-    real*8 function dv(z)
+
+
+
+    real*8 function dv(z, &
+                       DH, flat, omega_m, omega_l, omega_k )
         ! comoving volume element at redshift z
         real*8, intent(in) :: z
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         real*8 ezinv, da
 
-        da = angdist(0.0_8, z)
-        ezinv = ez_inverse(z)
+        da = angdist(0.0_8, z, DH, flat, omega_m, omega_l, omega_k)
+        ezinv = ez_inverse(z, flat, omega_m, omega_l, omega_k )
 
         dv = DH*da**2*ezinv*(1.0+z)**2
 
     end function dv
 
-    subroutine dv_vec(z, n, dvvec)
+    subroutine dv_vec(z, n, dvvec, &
+                      DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: z
         real*8, intent(inout), dimension(n) :: dvvec
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            dvvec(i) = dv( z(i) ) 
+            dvvec(i) = dv( z(i), DH, flat, omega_m, omega_l, omega_k )
         enddo
     end subroutine dv_vec
 
+    real*8 function volume(zmin, zmax, &
+                           DH, flat, omega_m, omega_l, omega_k )
+        real*8, intent(in) :: zmin, zmax
+        real*8 f1, f2, z
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
+        real*8 tdv
+
+        integer*8 i
+
+        f1 = (zmax-zmin)/2.
+        f2 = (zmax+zmin)/2.
+
+        volume = 0
+        do i=1,vnpts
+            z = vxxi(i)*f1 + f2
+            tdv = dv(z, DH, flat, omega_m, omega_l, omega_k)
+            volume = volume + f1*tdv*vwwi(i)
+        enddo
+    end function volume
 
 
 
-    real*8 function scinv(zl, zs)
+
+
+
+    real*8 function scinv(zl, zs, &
+                          DH, flat, omega_m, omega_l, omega_k )
         ! inverse critical density
         real*8, intent(in) :: zl,zs
+
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
 
         real*8 dl, ds, dls
 
@@ -293,43 +451,59 @@ contains
 
         if (flat) then
             ! we can save some computation in the flat case
-            dl = cdist(0.0_8, zl)
-            ds = cdist(0.0_8, zs)
+            dl = cdist(0.0_8, zl, DH, flat, omega_m, omega_l, omega_k)
+            ds = cdist(0.0_8, zs, DH, flat, omega_m, omega_l, omega_k)
             scinv = dl/(1.+zl)*(ds-dl)/ds * four_pi_G_over_c_squared
         else
-            dl  = angdist(0.0_8, zl)
-            ds  = angdist(0.0_8, zs)
-            dls = angdist(zl, zs)
+            dl  = angdist(0.0_8, zl, DH, flat, omega_m, omega_l, omega_k)
+            ds  = angdist(0.0_8, zs, DH, flat, omega_m, omega_l, omega_k)
+            dls = angdist(zl, zs, DH, flat, omega_m, omega_l, omega_k)
 
             scinv = dls*dl/ds*four_pi_G_over_c_squared
         endif
 
     end function scinv
 
-    subroutine scinv_vec(zmin, zmax, n, sc_inv)
+    subroutine scinv_vec(zmin, zmax, n, sc_inv, &
+                         DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: sc_inv
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            sc_inv(i) = scinv(zmin, zmax(i))
+            sc_inv(i) = scinv(zmin, zmax(i), &
+                              DH, flat, omega_m, omega_l, omega_k )
         enddo
 
     end subroutine scinv_vec
 
-    subroutine scinv_2vec(zmin, zmax, n, sc_inv)
+    subroutine scinv_2vec(zmin, zmax, n, sc_inv, &
+                         DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, intent(in), dimension(n) :: zmin
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: sc_inv
 
+        real*8, intent(in) :: DH
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            sc_inv(i) = scinv(zmin(i),zmax(i))
+            sc_inv(i) = scinv(zmin(i), zmax(i), &
+                              DH, flat, omega_m, omega_l, omega_k )
         enddo
 
     end subroutine scinv_2vec
@@ -337,8 +511,13 @@ contains
 
 
 
-    real*8 function ez_inverse(z)
+    real*8 function ez_inverse(z, flat, omega_m, omega_l, omega_k )
         real*8, intent(in) :: z
+
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
 
         if (flat) then
             ez_inverse = omega_m*(1.+z)**3 + omega_l
@@ -348,20 +527,33 @@ contains
         ez_inverse = sqrt(1.0/ez_inverse)
     end function ez_inverse
 
-    subroutine ez_inverse_vec(z, n, ez)
+    subroutine ez_inverse_vec(z, n, ez, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
         real*8, dimension(n), intent(in) :: z
         real*8, dimension(n), intent(inout) :: ez
+
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
         do i=1,n
-            ez(i) = ez_inverse( z(i) ) 
+            ez(i) = ez_inverse( z(i), &
+                               flat, omega_m, omega_l, omega_k)
         enddo
     end subroutine ez_inverse_vec
 
 
-    real*8 function ez_inverse_integral(zmin, zmax) result(val)
+    real*8 function ez_inverse_integral(zmin, zmax, flat, omega_m, omega_l, omega_k) result(val)
         real*8, intent(in) :: zmin, zmax
+
+        logical, intent(in) :: flat
+        real*8, intent(in) :: omega_m
+        real*8, intent(in) :: omega_l
+        real*8, intent(in) :: omega_k
+
         integer*8 i
 
 
@@ -372,31 +564,13 @@ contains
 
         do i=1,npts
             z = xxi(i)*f1 + f2
-            ezinv = ez_inverse(z)
+            ezinv = ez_inverse(z, &
+                               flat, omega_m, omega_l, omega_k)
 
             val = val + f1*ezinv*wwi(i);
         end do
 
     end function ez_inverse_integral
-
-
-    real*8 function volume(zmin, zmax)
-        real*8, intent(in) :: zmin, zmax
-        real*8 f1, f2, z
-
-        integer*8 i
-
-
-        f1 = (zmax-zmin)/2.
-        f2 = (zmax+zmin)/2.
-
-        volume = 0
-        do i=1,vnpts
-            z = vxxi(i)*f1 + f2
-            volume = volume + f1*dv(z)*vwwi(i)
-        enddo
-    end function volume
-
 
 
 

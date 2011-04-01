@@ -83,47 +83,60 @@ class Cosmo(dict):
                  flat=True,
                  omega_m=0.3, 
                  omega_l=0.7,
-                 omega_k=0.0):
+                 omega_k=None):
 
-        omega_m, omega_l, omega_k = \
-                self.extract_omegas(omega_m,omega_l,omega_k,flat)
+        flat, omega_m, omega_l, omega_k = \
+                self.extract_parms(omega_m,omega_l,omega_k,flat)
 
         if h is not None:
             H0 = 100.0*h
 
-        self['H0'] = H0 
-        self['omega_m'] = omega_m
-        self['omega_l'] = omega_l
-        self['omega_k'] = omega_k
-        self['flat'] = flat
-        _cosmolib.cosmolib.cosmo_init(flat,H0, omega_m, omega_k, omega_l)
-        self['npts'] =  int( _cosmolib.cosmolib.npts )
-        self['vnpts'] = int( _cosmolib.cosmolib.vnpts )
+        self.H0 = H0 
+        self.omega_m = omega_m
+        self.omega_l = omega_l
+        self.omega_k = omega_k
+        self.flat = flat
+        _cosmolib.cosmolib.cosmo_init()
 
-        self['DH'] = float(_cosmolib.cosmolib.dh)
+        self.DH = float(_cosmolib.cosmolib.c/H0)
 
         self.Distmod = self.distmod
 
-    def extract_omegas(self, omega_m, omega_l, omega_k, flat):
-        """
-        If flat is specified, make sure omega_l = 1-omega_m
-        and omega_k=0
-        """
-        if flat or omega_k == 0:
+    def __repr__(self):
+        m="""
+        H0:      {H0}
+        flat:    {flat}
+        omega_m: {omega_m}
+        omega_l: {omega_l}
+        omega_k: {omega_k}
+        """.format(H0=self.H0,
+                   flat=self.flat,
+                   omega_m=self.omega_m,
+                   omega_l=self.omega_l,
+                   omega_k=self.omega_k)
+        return m
+
+    def extract_parms(self, omega_m, omega_l, omega_k, flat):
+        if omega_k is not None:
+            # if omega_k is 0.0, we will set flat=True to simplify
+            # the calculations
+            if omega_k == 0.0:
+                flat=True
+            else:
+                flat=False
+
+        if omega_k is None:
+            # without omega_k set we default to flat
+            flat=True
+            omega_k=0.0
+        elif flat:
+            # finally, if flat is set we always put omega_k = 0
+            omega_k=0.0
+
+        if flat:
             omega_l = 1.0-omega_m
-            omega_k = 0.0
-        return omega_m, omega_l, omega_k
 
-    def DH(self):
-        """
-        Return the Hubble distance in Mpc/h.  You can also access this
-        with
-            c = cosmology.Cosmo()
-            c['DH']
-        """
-
-        return self['DH']
-
+        return flat, omega_m, omega_l, omega_k
 
 
     def Dc(self, zmin, zmax):
@@ -142,19 +155,25 @@ class Cosmo(dict):
 
         if isscalar(zmin) and isscalar(zmax):
             # two scalars of any kind.
-            dc = _cosmolib.cosmolib.cdist(zmin, zmax)
+            dc = _cosmolib.cosmolib.cdist(zmin, zmax,
+                                          self.DH, self.flat, 
+                                          self.omega_m, self.omega_l, self.omega_k)
 
         elif isscalar(zmin) and not isscalar(zmax):
             # scalar for zmin, array for zmax
             dc=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.cdist_vec(zmin, zmax, dc)
+            _cosmolib.cosmolib.cdist_vec(zmin, zmax, dc,
+                                         self.DH, self.flat, 
+                                         self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zmin) and not isscalar(zmax):
             # both arrays: must be same length
             if len(zmin) != len(zmax):
                 raise ValueError("If zmin and zmax are arrays, they must be same length")
             dc=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.cdist_2vec(zmin, zmax, dc)
+            _cosmolib.cosmolib.cdist_2vec(zmin, zmax, dc,
+                                          self.DH, self.flat, 
+                                          self.omega_m, self.omega_l, self.omega_k)
         else:
             raise ValueError("zmin,zmax should be two scalars, zmin scalar zmax array, or both arrays")
 
@@ -181,19 +200,25 @@ class Cosmo(dict):
 
         if isscalar(zmin) and isscalar(zmax):
             # two scalars of any kind.
-            dm = _cosmolib.cosmolib.tcdist(zmin, zmax)
+            dm = _cosmolib.cosmolib.tcdist(zmin, zmax,
+                                           self.DH, self.flat, 
+                                           self.omega_m, self.omega_l, self.omega_k)
 
         elif isscalar(zmin) and not isscalar(zmax):
             # scalar for zmin, array for zmax
             dm=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.tcdist_vec(zmin, zmax, dm)
+            _cosmolib.cosmolib.tcdist_vec(zmin, zmax, dm,
+                                          self.DH, self.flat, 
+                                          self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zmin) and not isscalar(zmax):
             # both arrays: must be same length
             if len(zmin) != len(zmax):
                 raise ValueError("If zmin and zmax are arrays, they must be same length")
             dm=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.tcdist_2vec(zmin, zmax, dm)
+            _cosmolib.cosmolib.tcdist_2vec(zmin, zmax, dm,
+                                           self.DH, self.flat, 
+                                           self.omega_m, self.omega_l, self.omega_k)
         else:
             raise ValueError("zmin,zmax should be two scalars, zmin scalar zmax array, or both arrays")
 
@@ -217,19 +242,25 @@ class Cosmo(dict):
 
         if isscalar(zmin) and isscalar(zmax):
             # two scalars of any kind.
-            da = _cosmolib.cosmolib.angdist(zmin, zmax)
+            da = _cosmolib.cosmolib.angdist(zmin, zmax,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
 
         elif isscalar(zmin) and not isscalar(zmax):
             # scalar for zmin, array for zmax
             da=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.angdist_vec(zmin, zmax, da)
+            _cosmolib.cosmolib.angdist_vec(zmin, zmax, da,
+                                           self.DH, self.flat, 
+                                           self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zmin) and not isscalar(zmax):
             # both arrays: must be same length
             if len(zmin) != len(zmax):
                 raise ValueError("If zmin and zmax are arrays, they must be same length")
             da=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.angdist_2vec(zmin, zmax, da)
+            _cosmolib.cosmolib.angdist_2vec(zmin, zmax, da,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
         else:
             raise ValueError("zmin,zmax should be two scalars, zmin scalar zmax array, or both arrays")
 
@@ -252,23 +283,30 @@ class Cosmo(dict):
 
         if isscalar(zmin) and isscalar(zmax):
             # two scalars of any kind.
-            d = _cosmolib.cosmolib.lumdist(zmin, zmax)
+            da = _cosmolib.cosmolib.lumdist(zmin, zmax,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
 
         elif isscalar(zmin) and not isscalar(zmax):
             # scalar for zmin, array for zmax
-            d=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.lumdist_vec(zmin, zmax, d)
+            da=numpy.zeros(len(zmax), dtype='f8')
+            _cosmolib.cosmolib.lumdist_vec(zmin, zmax, da,
+                                           self.DH, self.flat, 
+                                           self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zmin) and not isscalar(zmax):
             # both arrays: must be same length
             if len(zmin) != len(zmax):
                 raise ValueError("If zmin and zmax are arrays, they must be same length")
-            d=numpy.zeros(len(zmax), dtype='f8')
-            _cosmolib.cosmolib.lumdist_2vec(zmin, zmax, d)
+            da=numpy.zeros(len(zmax), dtype='f8')
+            _cosmolib.cosmolib.lumdist_2vec(zmin, zmax, da,
+                                            self.DH, self.flat, 
+                                            self.omega_m, self.omega_l, self.omega_k)
         else:
             raise ValueError("zmin,zmax should be two scalars, zmin scalar zmax array, or both arrays")
 
-        return d
+        return da
+
 
 
     def dV(self, z):
@@ -281,10 +319,14 @@ class Cosmo(dict):
             Redshift
         """
         if isscalar(z):
-            dv = _cosmolib.cosmolib.dv(z)
+            dv = _cosmolib.cosmolib.dv(z, 
+                                       self.DH, self.flat, 
+                                       self.omega_m, self.omega_l, self.omega_k)
         else:
             dv = numpy.zeros(len(z), dtype='f8')
-            _cosmolib.cosmolib.dv_vec(z)
+            _cosmolib.cosmolib.dv_vec(z,dv,
+                                      self.DH, self.flat, 
+                                      self.omega_m, self.omega_l, self.omega_k)
 
         return dv
 
@@ -297,7 +339,9 @@ class Cosmo(dict):
         zmin, zmax: scalars
             min and max redshifts
         """
-        return _cosmolib.cosmolib.volume(zmin, zmax)
+        return _cosmolib.cosmolib.volume(zmin, zmax,
+                                         self.DH, self.flat, 
+                                         self.omega_m, self.omega_l, self.omega_k)
 
     def distmod(self, z):
         """
@@ -333,19 +377,25 @@ class Cosmo(dict):
 
         if isscalar(zl) and isscalar(zs):
             # two scalars of any kind.
-            scinv = _cosmolib.cosmolib.scinv(zl, zs)
+            scinv = _cosmolib.cosmolib.scinv(zl, zs,
+                                             self.DH, self.flat, 
+                                             self.omega_m, self.omega_l, self.omega_k)
 
         elif isscalar(zl) and not isscalar(zs):
             # scalar for zl, array for zs
             scinv=numpy.zeros(len(zs), dtype='f8')
-            _cosmolib.cosmolib.scinv_vec(zl, zs, scinv)
+            _cosmolib.cosmolib.scinv_vec(zl, zs, scinv,
+                                         self.DH, self.flat, 
+                                         self.omega_m, self.omega_l, self.omega_k)
 
         elif not isscalar(zl) and not isscalar(zs):
             # both arrays: must be same length
             if len(zl) != len(zs):
                 raise ValueError("If zl and zs are arrays, they must be same length")
             scinv=numpy.zeros(len(zs), dtype='f8')
-            _cosmolib.cosmolib.scinv_2vec(zl, zs, scinv)
+            _cosmolib.cosmolib.scinv_2vec(zl, zs, scinv,
+                                          self.DH, self.flat, 
+                                          self.omega_m, self.omega_l, self.omega_k)
         else:
             raise ValueError("zl,zs should be two scalars, zl scalar zs array, or both arrays")
 
@@ -365,10 +415,12 @@ class Cosmo(dict):
         """
 
         if isscalar(z):
-            ez = _cosmolib.cosmolib.ez_inverse(z)
+            ez = _cosmolib.cosmolib.ez_inverse(z, self.flat, 
+                                               self.omega_m, self.omega_l, self.omega_k)
         else:
             ez = numpy.zeros(len(z), dtype='f8')
-            _cosmolib.cosmolib.ez_inverse_vec(z, ez)
+            _cosmolib.cosmolib.ez_inverse_vec(z, ez, self.flat, 
+                                              self.omega_m, self.omega_l, self.omega_k)
 
         return ez
 
@@ -384,7 +436,8 @@ class Cosmo(dict):
             The redshifts
         """
 
-        return _cosmolib.cosmolib.ez_inverse_integral(zmin, zmax)
+        return _cosmolib.cosmolib.ez_inverse_integral(zmin, zmax, self.flat, 
+                                                      self.omega_m, self.omega_l, self.omega_k)
 
 
 
