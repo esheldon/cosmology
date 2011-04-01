@@ -464,11 +464,11 @@ contains
 
     end function scinv
 
-    subroutine scinv_vec(zmin, zmax, n, sc_inv, &
+    subroutine scinv_vec(zl, zs, n, sc_inv, &
                          DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
-        real*8, intent(in) :: zmin
-        real*8, intent(in), dimension(n) :: zmax
+        real*8, intent(in) :: zl
+        real*8, intent(in), dimension(n) :: zs
         real*8, intent(inout), dimension(n) :: sc_inv
 
         real*8, intent(in) :: DH
@@ -480,17 +480,17 @@ contains
         integer*8 i
 
         do i=1,n
-            sc_inv(i) = scinv(zmin, zmax(i), &
+            sc_inv(i) = scinv(zl, zs(i), &
                               DH, flat, omega_m, omega_l, omega_k )
         enddo
 
     end subroutine scinv_vec
 
-    subroutine scinv_2vec(zmin, zmax, n, sc_inv, &
+    subroutine scinv_2vec(zl, zs, n, sc_inv, &
                          DH, flat, omega_m, omega_l, omega_k )
         integer*8, intent(in) :: n
-        real*8, intent(in), dimension(n) :: zmin
-        real*8, intent(in), dimension(n) :: zmax
+        real*8, intent(in), dimension(n) :: zl
+        real*8, intent(in), dimension(n) :: zs
         real*8, intent(inout), dimension(n) :: sc_inv
 
         real*8, intent(in) :: DH
@@ -502,12 +502,11 @@ contains
         integer*8 i
 
         do i=1,n
-            sc_inv(i) = scinv(zmin(i), zmax(i), &
+            sc_inv(i) = scinv(zl(i), zs(i), &
                               DH, flat, omega_m, omega_l, omega_k )
         enddo
 
     end subroutine scinv_2vec
-
 
 
 
