@@ -10,10 +10,10 @@ module cosmolib
 
     ! class variables
     integer*8, save, private :: has_been_init = 0
-    integer*8, save :: npts
-    integer*8, save :: vnpts
-    real*8, private, save, dimension(:), allocatable :: xxi, wwi
-    real*8, private, save, dimension(:), allocatable :: vxxi, vwwi
+    integer*8, parameter :: npts=5
+    integer*8, parameter :: vnpts=10
+    real*8, private, save, dimension(npts) :: xxi, wwi
+    real*8, private, save, dimension(vnpts) :: vxxi, vwwi
 
     real*8, save :: H0
     real*8, save :: omega_m
@@ -43,13 +43,11 @@ contains
 
     ! you must initialize
     subroutine cosmo_init(flat_new, H0_new, omega_m_new, &
-                          npts_new, vnpts_new, &
                           omega_k_new, omega_l_new)
 
         logical, intent(in) :: flat_new
 
         real*8, intent(in) :: H0_new, omega_m_new
-        integer*8, intent(in) :: npts_new, vnpts_new
 
         ! we only need these if the universe is not flat
         real*8, intent(in), optional :: omega_l_new, omega_k_new
@@ -57,8 +55,6 @@ contains
         flat    = flat_new
         H0      = H0_new
         omega_m = omega_m_new
-        npts    = npts_new
-        vnpts    = vnpts_new
 
         DH = c/H0
 
@@ -88,7 +84,9 @@ contains
 
         endif
 
-        call set_cosmo_weights(npts, vnpts)
+        if (has_been_init == 0) then
+            call set_cosmo_weights()
+        endif
 
         has_been_init = 1
 
@@ -413,31 +411,7 @@ contains
 
 
 
-    subroutine set_cosmo_weights(npts_new, vnpts_new)
-
-        integer*8, intent(in) :: npts_new
-        integer*8, intent(in) :: vnpts_new
-        npts = npts_new
-        vnpts = vnpts_new
-
-        if (allocated(xxi)) then
-            deallocate(xxi)
-        endif
-        allocate(xxi(npts)); xxi=0
-        if (allocated(wwi)) then
-            deallocate(wwi)
-        endif
-        allocate(wwi(npts)); wwi=0
-
-        if (allocated(vxxi)) then
-            deallocate(vxxi)
-        endif
-        allocate(vxxi(vnpts)); vxxi=0
-
-        if (allocated(vwwi)) then
-            deallocate(vwwi)
-        endif
-        allocate(vwwi(vnpts)); vwwi=0
+    subroutine set_cosmo_weights()
 
         call gauleg(-1.0_8, 1.0_8, npts, xxi, wwi)
         call gauleg(-1.0_8, 1.0_8, vnpts, vxxi, vwwi)

@@ -30,12 +30,7 @@ class Cosmo(dict):
         omega_l = 1-omega_m
     omega_k: float, optional
         Curvature in units of the critical density. If flat, omega_k=0
-    npts: integer, optional:
-        Number of points used for integrating 1/E(z).  npts=5 is good to 1.e-8,
-        as E(z) is a very slow function.
-    vnpts: integer, optional:
-        Number of points to use for volume integrations. Default is 10, good to
-        1.e-11 for example between 0.2 and 1.0
+
 
     Methods
     -------
@@ -72,6 +67,15 @@ class Cosmo(dict):
         # source at 0.3
         c.sigmacritinv(0.2, 0.3)
 
+    Internal fixed parameters
+    -------------------------
+    npts: integer
+        Number of points used for integrating 1/E(z).  npts=5 is good to 1.e-8,
+        as E(z) is a very slow function.
+    vnpts: integer
+        Number of points to use for volume integrations. Default is 10, good to
+        1.e-11 for example between 0.2 and 1.0
+
     """
     def __init__(self, 
                  H0=100.0,
@@ -79,9 +83,7 @@ class Cosmo(dict):
                  flat=True,
                  omega_m=0.3, 
                  omega_l=0.7,
-                 omega_k=0.0,
-                 npts=5,
-                 vnpts=10):
+                 omega_k=0.0):
 
         omega_m, omega_l, omega_k = \
                 self.extract_omegas(omega_m,omega_l,omega_k,flat)
@@ -94,9 +96,9 @@ class Cosmo(dict):
         self['omega_l'] = omega_l
         self['omega_k'] = omega_k
         self['flat'] = flat
-        self['npts'] = npts
-        self['vnpts'] = vnpts
-        _cosmolib.cosmolib.cosmo_init(flat,H0, omega_m, npts, vnpts, omega_k, omega_l)
+        _cosmolib.cosmolib.cosmo_init(flat,H0, omega_m, omega_k, omega_l)
+        self['npts'] =  int( _cosmolib.cosmolib.npts )
+        self['vnpts'] = int( _cosmolib.cosmolib.vnpts )
 
         self['DH'] = float(_cosmolib.cosmolib.dh)
 
