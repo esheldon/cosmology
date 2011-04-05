@@ -4,11 +4,15 @@ module cosmolib
     !
     ! f2py doesn't yet support derived types (structures), forcing me to send
     ! all the cosmological parameters each to the functions rather than a
-    ! structure.  This is pretty ugly and harder to maintain.
+    ! structure.  This is pretty ugly and harder to maintain, but still nicer
+    ! than writing it in C.
+    ! 
+    ! f2py will support structures after this summer....
     !
-    ! This uses gauss-legendre integration extremely fast and accurate
+    ! Uses gauss-legendre integration extremely fast and accurate
     !
     ! For 1/E(z) integration, 5 points is good to 1.e-8
+    ! vnpts=10 for volumes good to E(z) precision.
 
     implicit none
 
@@ -22,7 +26,6 @@ module cosmolib
 
     ! use in scinv for dlens in Mpc
     real*8, parameter :: four_pi_G_over_c_squared = 6.0150504541630152e-07_8
-    ! The hubble distance c/H0
     real*8, parameter :: c = 2.99792458e5_8
 
     ! for integral calculations
@@ -51,11 +54,8 @@ contains
         ! comoving distance
         real*8, intent(in) :: zmin, zmax
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         cdist = DH*ez_inverse_integral(zmin, zmax, &
                                        flat, omega_m, omega_l, omega_k )
@@ -70,11 +70,8 @@ contains
         real*8, intent(in) :: zmax
         real*8, intent(inout), dimension(n) :: dc
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -91,11 +88,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dc
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -114,11 +108,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dc
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -137,11 +128,8 @@ contains
 
         real*8, intent(in) :: zmin, zmax
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 t
 
@@ -167,11 +155,8 @@ contains
         real*8, intent(in) :: zmax
         real*8, intent(inout), dimension(n) :: dm
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 d, t
 
@@ -211,11 +196,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dm
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 d, t
 
@@ -253,11 +235,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: dm
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 d, t
 
@@ -297,11 +276,8 @@ contains
         ! angular diameter distance
         real*8, intent(in) :: zmin, zmax
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         if (flat) then
             ! this is just the comoving distance over 1+zmax
@@ -321,11 +297,8 @@ contains
         real*8, intent(in) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -343,11 +316,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -368,11 +338,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -390,11 +357,8 @@ contains
         ! angular diameter distance
         real*8, intent(in) :: zmin, zmax
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         lumdist = angdist(zmin, zmax, DH, flat, omega_m, omega_l, omega_k )
         lumdist = lumdist*(1.+zmax)**2
@@ -408,11 +372,8 @@ contains
         real*8, intent(in) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 d
         integer*8 i
@@ -434,11 +395,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 d
         integer*8 i
@@ -458,11 +416,8 @@ contains
         real*8, intent(in), dimension(n) :: zmax
         real*8, intent(inout), dimension(n) :: da
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 d
 
@@ -485,11 +440,8 @@ contains
         ! comoving volume element at redshift z
         real*8, intent(in) :: z
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 ezinv, da
 
@@ -506,11 +458,8 @@ contains
         real*8, intent(in), dimension(n) :: z
         real*8, intent(inout), dimension(n) :: dvvec
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -524,11 +473,8 @@ contains
         real*8, intent(in) :: zmin, zmax
         real*8 f1, f2, z
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 tdv
 
@@ -555,11 +501,8 @@ contains
         ! inverse critical density
         real*8, intent(in) :: zl,zs
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         real*8 dl, ds, dls
 
@@ -591,11 +534,8 @@ contains
         real*8, intent(in) :: zs
         real*8, intent(inout), dimension(n) :: sc_inv
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -613,11 +553,8 @@ contains
         real*8, intent(in), dimension(n) :: zs
         real*8, intent(inout), dimension(n) :: sc_inv
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -635,11 +572,8 @@ contains
         real*8, intent(in), dimension(n) :: zs
         real*8, intent(inout), dimension(n) :: sc_inv
 
-        real*8, intent(in) :: DH
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: DH, omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -656,9 +590,7 @@ contains
         real*8, intent(in) :: z
 
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: omega_m,omega_l,omega_k
 
         if (flat) then
             ez_inverse = omega_m*(1.+z)**3 + omega_l
@@ -674,9 +606,7 @@ contains
         real*8, dimension(n), intent(inout) :: ez
 
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: omega_m,omega_l,omega_k
 
         integer*8 i
 
@@ -691,9 +621,7 @@ contains
         real*8, intent(in) :: zmin, zmax
 
         logical, intent(in) :: flat
-        real*8, intent(in) :: omega_m
-        real*8, intent(in) :: omega_l
-        real*8, intent(in) :: omega_k
+        real*8, intent(in) :: omega_m,omega_l,omega_k
 
         integer*8 i
 
