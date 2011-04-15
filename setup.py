@@ -19,8 +19,8 @@ def create_ups(prefix):
     pylib_install_subdir = pylib_install_subdir.replace('dist-packages','site-packages')
 
 
-    upstext="""
-setupOptional("numpy")
+    upstext=\
+"""setupOptional("numpy")
 envPrepend(PYTHONPATH,${PRODUCT_DIR}/%s)
 """ % pylib_install_subdir 
 
