@@ -17,3 +17,8 @@ Installation
 If you want to use UPS to manage your code install with the with_ups command
     python setup.py with_ups install --prefix=/some/path
 
+
+Unit Tests
+----------
+import cosmology
+cosmology.test()
