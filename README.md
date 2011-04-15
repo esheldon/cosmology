@@ -22,10 +22,11 @@ If you want to use UPS to manage your code install with the with_ups command
 
 Unit Tests
 ----------
-import cosmology
-cosmology.test()
+
+    import cosmology
+    cosmology.test()
 
 TODO
 ----
-    - Add equation of state
-    - Add *evolving* equation of state.
+ - Add equation of state
+ - Add *evolving* equation of state.
