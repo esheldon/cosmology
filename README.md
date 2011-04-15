@@ -13,18 +13,18 @@ call the python methods.
 Installation
 ------------
 
-    python setup.py install --prefix=/some/path
+        python setup.py install --prefix=/some/path
 
 If you want to use UPS to manage your code install with the with_ups command
 
-    python setup.py with_ups install --prefix=/some/path
+        python setup.py with_ups install --prefix=/some/path
 
 
 Unit Tests
 ----------
 
-    import cosmology
-    cosmology.test()
+        import cosmology
+        cosmology.test()
 
 TODO
 ----
