@@ -1,18 +1,28 @@
 """
-A package to calculate cosmological distances.  
+A package for calculating  cosmological distances.  
 
-This is an implementation of Hogg, D., Distance measures in cosmology,
-astro-ph/9905116
+Classes
+-------
+Cosmo:
+    This is the class that does all the calculating.  See docs on cosmology.Cosmo
+    for more details.
 
-The implementation is a python class Cosmo, which is a wrapper for fast
-routines written in fortran 90.  
+    Cosmo Class Methods
+    --------------
+    DH: Return the hubble distance.
+    Dc: Comoving distance.
+    Dm: Transverse comoving distance.
+    Da: Angular diameter distance.
+    Dl: Luminosity distance.
+    dV: Volume element.
+    V:  Volume between two redshifts.
+    distmod: Distance modulus.
+    sigmacritinv: Inverse critical density for lensing.
 
-See docs for the Cosmo class for details, e.g.  in ipython
+    Ez_inverse: Calculate 1/E(z)
+    Ezinv_integral: Calculate the integral of 1/E(z) from zmin to zmax
 
-    import cosmology
-    cosmology.Cosmo?
 
 """
 from . import cosmology
-from .cosmology import Cosmo, test
-
+from .cosmology import Cosmo
