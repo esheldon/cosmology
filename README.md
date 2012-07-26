@@ -23,28 +23,29 @@ If you want to use UPS to manage your code install with the with_ups command
 Class
 -----
 
-import esutil
-c=esutil.cosmology.Cosmo()
+    import esutil
+    c=esutil.cosmology.Cosmo()
 
 Methods
 -------
-DH: Return the hubble distance.
-Dc: Comoving distance.
-Dm: Transverse comoving distance.
-Da: Angular diameter distance.
-Dl: Luminosity distance.
-dV: Volume element.
-V:  Volume between two redshifts.
-distmod: Distance modulus.
-sigmacritinv: Inverse critical density for lensing.
 
-Ez_inverse: Calculate 1/E(z)
-Ezinv_integral: Calculate the integral of 1/E(z) from zmin to zmax
+    DH: Return the hubble distance.
+    Dc: Comoving distance.
+    Dm: Transverse comoving distance.
+    Da: Angular diameter distance.
+    Dl: Luminosity distance.
+    dV: Volume element.
+    V:  Volume between two redshifts.
+    distmod: Distance modulus.
+    sigmacritinv: Inverse critical density for lensing.
 
-flat(): return if universe is flat
-omega_m(): value of omega matter
-omega_l(): value of omega lambda
-omega_k(): value of omega curvature
+    Ez_inverse: Calculate 1/E(z)
+    Ezinv_integral: Calculate the integral of 1/E(z) from zmin to zmax
+
+    flat(): return if universe is flat
+    omega_m(): value of omega matter
+    omega_l(): value of omega lambda
+    omega_k(): value of omega curvature
 
 
 
