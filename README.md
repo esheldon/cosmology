@@ -23,8 +23,8 @@ If you want to use UPS to manage your code install with the with_ups command
 Class
 -----
 
-    import esutil
-    c=esutil.cosmology.Cosmo()
+    import cosmology
+    c=cosmology.Cosmo()
 
 Methods
 -------
