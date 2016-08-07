@@ -788,7 +788,11 @@ static PyMethodDef cosmotype_methods[] = {
 #define PyMODINIT_FUNC void
 #endif
 PyMODINIT_FUNC
+#if PY_MAJOR_VERSION >= 3
+PyInit__cosmolib(void) 
+#else
 init_cosmolib(void) 
+#endif
 {
     PyObject* m;
 

@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy
 from numpy import isscalar, linspace
-import _cosmolib
+from . import _cosmolib
 
 
 _CLIGHT=2.99792458e5

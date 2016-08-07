@@ -24,5 +24,8 @@ Cosmo:
 
 
 """
+
 from . import cosmology
 from .cosmology import Cosmo
+
+__version__="1.1.0"
