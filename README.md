@@ -17,36 +17,6 @@ Installation
     python setup.py install --prefix=/some/path
 ```
 
-Class
------
-```python
-import cosmology
-c=cosmology.Cosmo()
-```
-
-Methods
--------
-
-```
-DH: Return the hubble distance.
-Dc: Comoving distance.
-Dm: Transverse comoving distance.
-Da: Angular diameter distance.
-Dl: Luminosity distance.
-dV: Volume element.
-V:  Volume between two redshifts.
-distmod: Distance modulus.
-sigmacritinv: Inverse critical density for lensing.
-
-Ez_inverse: Calculate 1/E(z)
-Ezinv_integral: Calculate the integral of 1/E(z) from zmin to zmax
-
-flat(): return if universe is flat
-omega_m(): value of omega matter
-omega_l(): value of omega lambda
-omega_k(): value of omega curvature
-```
-
 Examples
 --------
 
@@ -71,7 +41,7 @@ c=cosmology.Cosmo(H0=70.0, omega_m=0.25)
 c.sigmacritinv(0.2, 0.3)
 ```
 
-Unit Tests
+Tests
 ----------
 
 ```python
